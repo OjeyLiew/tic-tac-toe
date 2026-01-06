@@ -1,0 +1,15 @@
+.board {
+    border: 1px solid black;
+    height: 50vh;
+    width: 50vh;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+}
+
+.cell {
+    border: 1px solid black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

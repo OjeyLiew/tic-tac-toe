@@ -22,16 +22,23 @@ function player(mark) {
 
     return {
         placeMark,
+        mark,
     }
 }
+
 
 const game = (function() {
     const player1 = player("X");
     const player2 = player("O");
     let currentPlayer = player1;
-    function reset(startingPlayer = player1) {
+    function reset() {
         gameboard.gamestate = [];
-        currentPlayer = startingPlayer;
+        currentPlayer = player1;
+        console.log(currentPlayer)
+    }
+
+    function getCurrentPlayer() {
+        return currentPlayer;
     }
 
     function winner() {
@@ -72,9 +79,11 @@ const game = (function() {
             return;
         }
         const succ = currentPlayer.placeMark(pos);
+        
         if (succ) {
             currentPlayer = currentPlayer === player1 ? player2 : player1;
         }
+        return currentPlayer;
     }
 
     return {
@@ -82,7 +91,73 @@ const game = (function() {
         takeTurn,
         winner,
         tied,
-        currentPlayer,
+        getCurrentPlayer,
     }
 })()
 
+
+const displayDom = (function() {
+    function cleanDom() {
+        const board = document.querySelector(".board");
+        board.remove();
+        const winner = document.querySelector(".winner");
+        if (winner) {
+            winner.remove();
+        }
+    }
+
+    function announce(content) {
+        const body = document.querySelector("body");
+        const span = document.createElement("span");
+        span.classList.add("winner");
+        span.textContent = content;
+        body.appendChild(span);
+    }
+
+    function renderBoard() {
+        const body = document.querySelector("body");
+        const board = document.createElement("div");
+        board.classList.add("board");
+        for (let i = 0; i < 9; ++i) {
+            const cell = document.createElement("div");
+            cell.classList.add("cell");
+            cell.dataset.index = i;
+            if (gameboard.gamestate[i]) {
+                cell.textContent = gameboard.gamestate[i];
+            }
+            cell.addEventListener("click", (event) => {
+                if (game.winner() || game.tied()) {
+                    return;
+                }
+                cell.textContent = game.getCurrentPlayer().mark;
+                currentPlayer = game.takeTurn(i);
+                game.currentPlayer = currentPlayer;
+                let winner = game.winner();
+                if (winner) {
+                    announce(`${winner} won the game`);
+                }
+                if (game.tied()) {
+                    announce("You tied");
+                }
+            })
+            board.appendChild(cell);
+        }
+        body.appendChild(board);
+    }
+
+    return {
+        renderBoard,
+        cleanDom,
+    }
+})();
+
+const start = document.querySelector(".start");
+const reset = document.querySelector(".reset");
+start.addEventListener("click", () => {
+    displayDom.renderBoard();
+})
+reset.addEventListener("click", () => {
+    displayDom.cleanDom();
+    game.reset();
+    displayDom.renderBoard();
+})
